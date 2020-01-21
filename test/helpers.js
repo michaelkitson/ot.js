@@ -1,19 +1,18 @@
 (function (exports) {
 
-  var TextOperation = typeof exports.ot === 'object' ? exports.ot.TextOperation
-    : require('../lib/text-operation');
+  const TextOperation = require('../lib/text-operation');
 
   function randomInt (n) {
     return Math.floor(Math.random() * n);
   }
 
   function randomString (n) {
-    var str = '';
+    let str = '';
     while (n--) {
       if (Math.random() < 0.15) {
         str += '\n';
       } else {
-        var chr = randomInt(26) + 97;
+        const chr = randomInt(26) + 97;
         str += String.fromCharCode(chr);
       }
     }
@@ -21,13 +20,13 @@
   }
 
   function randomOperation (str) {
-    var operation = new TextOperation();
-    var left;
+    const operation = new TextOperation();
+    let left;
     while (true) {
       left = str.length - operation.baseLength;
       if (left === 0) { break; }
-      var r = Math.random();
-      var l = 1 + randomInt(Math.min(left - 1, 20));
+      const r = Math.random();
+      const l = 1 + randomInt(Math.min(left - 1, 20));
       if (r < 0.2) {
         operation.insert(randomString(l));
       } else if (r < 0.4) {
