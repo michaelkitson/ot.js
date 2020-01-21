@@ -21,6 +21,12 @@ test('lengths', () => {
   expect(o.targetLength).toBe(10);
 });
 
+test('unicode character lengths', () => {
+  const o = new TextOperation();
+  o.insert('🚀');
+  expect(o.targetLength).toBe(1);
+});
+
 test('chaining', () => {
   const o = new TextOperation()
   .retain(5)
