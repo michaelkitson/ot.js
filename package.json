@@ -1,7 +1,7 @@
 {
   "name": "ot",
   "version": "0.0.15",
-  "main": "./lib/index.js",
+  "main": "./lib/text-operation.js",
   "dependencies": {},
   "scripts": {
     "test": "jest"
