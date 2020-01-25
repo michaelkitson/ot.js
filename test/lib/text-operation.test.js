@@ -40,24 +40,46 @@ test('chaining', () => {
   expect(o.ops.length).toBe(3);
 })
 
-test('apply', () => {
-  for (let i = 0; i < n; i++) {
-    const str = h.randomString(50);
-    const o = h.randomOperation(str);
-    expect(o.baseLength).toBe(str.length)
-    expect(o.targetLength).toBe(o.apply(str).length)
-  }
-});
+describe('apply', () => {
+  test('basic', () => {
+    for (let i = 0; i < n; i++) {
+      const str = h.randomString(50);
+      const o = h.randomOperation(str);
+      expect(o.baseLength).toBe(str.length)
+      expect(o.targetLength).toBe(o.apply(str).length)
+    }
+  });
 
-test('invert', () => {
-  for (let i = 0; i < n; i++) {
-    const str = h.randomString(50);
-    const o = h.randomOperation(str);
+  test('unicode', () => {
+    const str = "console.log('Hello World!');\n👨🏼\n\n";
+    const o = new TextOperation().delete(1).retain(32);
+    const newStr = o.apply(str)
+    expect(o.baseLength).toBe(Array.from(str).length)
+    expect(o.targetLength).toBe(Array.from(str).length - 1)
+    expect(o.targetLength).toBe(Array.from(newStr).length)
+  })
+})
+
+describe('invert', () => {
+  test('basic', () => {
+    for (let i = 0; i < n; i++) {
+      const str = h.randomString(50);
+      const o = h.randomOperation(str);
+      const p = o.invert(str);
+      expect(o.targetLength).toBe(p.baseLength);
+      expect(o.baseLength).toBe(p.targetLength);
+      expect(p.apply(o.apply(str))).toBe(str);
+    }
+  });
+
+  test('unicode', () => {
+    const str = "🍔12345";
+    const o = new TextOperation().delete(3).retain(3);
     const p = o.invert(str);
     expect(o.targetLength).toBe(p.baseLength);
     expect(o.baseLength).toBe(p.targetLength);
     expect(p.apply(o.apply(str))).toBe(str);
-  }
+  })
 });
 
 test('emptyOps', () => {
@@ -189,22 +211,39 @@ test('shouldBeComposedWithInverted', () => {
   }
 });
 
-test('compose', () => {
-  for (let i = 0; i < n; i++) {
+describe('compose', () => {
+  test('basic', () => {
+    for (let i = 0; i < n; i++) {
+      // invariant: apply(str, compose(a, b)) === apply(apply(str, a), b)
+      const str = h.randomString(20);
+      const a = h.randomOperation(str);
+      const afterA = a.apply(str);
+      expect(a.targetLength).toBe(afterA.length);
+      const b = h.randomOperation(afterA);
+      const afterB = b.apply(afterA);
+      expect(b.targetLength).toBe(afterB.length);
+      const ab = a.compose(b);
+      expect(ab.meta).toBe(a.meta);
+      expect(ab.targetLength).toBe(b.targetLength);
+      const afterAB = ab.apply(str);
+      expect(afterB).toBe(afterAB);
+    }
+  });
+
+  test('unicode', () => {
+    const str = '12345'
     // invariant: apply(str, compose(a, b)) === apply(apply(str, a), b)
-    const str = h.randomString(20);
-    const a = h.randomOperation(str);
+    const a = new TextOperation().insert("🍔🍔").retain(5);
+    const b = new TextOperation().retain(1).delete(1).retain(5);
     const afterA = a.apply(str);
-    expect(a.targetLength).toBe(afterA.length);
-    const b = h.randomOperation(afterA);
+    expect(a.targetLength).toBe(Array.from(afterA).length);
     const afterB = b.apply(afterA);
-    expect(b.targetLength).toBe(afterB.length);
+    expect(b.targetLength).toBe(Array.from(afterB).length);
     const ab = a.compose(b);
-    expect(ab.meta).toBe(a.meta);
     expect(ab.targetLength).toBe(b.targetLength);
     const afterAB = ab.apply(str);
     expect(afterB).toBe(afterAB);
-  }
+  });
 });
 
 test('transform', () => {
